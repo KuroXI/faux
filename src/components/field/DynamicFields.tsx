@@ -17,7 +17,7 @@ export const DynamicFields = () => {
   const [fields, setFields] = useState<Field[]>(defaultFields);
 
   useEffect(() => {
-    fetch("/api/methods", { method: "POST" }).then(async (res) => setLists(await res.json()));
+    fetch("/api/mock").then(async (res) => setLists(await res.json()));
   }, []);
 
   const handleCountChange = (e: ChangeEvent<HTMLInputElement>) => {
