@@ -18,7 +18,7 @@ export const DynamicFields = () => {
 
   useEffect(() => {
     const getMethods = async () => {
-      const response = await fetch("/api/mock");
+      const response = await fetch("/api/mock", { method: "GET" });
       setLists(await response.json());
     };
 
