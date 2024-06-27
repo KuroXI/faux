@@ -1,108 +1,118 @@
 "use client";
 
+import { defaultFields } from "@/lib/constant";
 import { Field, Method } from "@/lib/type";
-import { PlusCircle, RotateCcw, Trash2 } from "lucide-react";
-import { ChangeEvent, useEffect, useState } from "react";
+import { buildJSON, getBaseURL, handleInputTextNumber } from "@/lib/utils";
+import { cloneDeep } from "lodash";
+import { Eye, PlusCircle, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Code } from "./Code";
 import { SelectMethod } from "./SelectMethod";
-import { defaultFields } from "@/lib/constant";
-import { toast } from "sonner";
+import { ViewCode } from "./ViewCode";
 
 export const DynamicFields = () => {
   const [result, setResult] = useState(null);
   const [lists, setLists] = useState<Method[]>([]);
-  const [count, setCount] = useState("1");
+  const [count, setCount] = useState<string | null>(null);
   const [fields, setFields] = useState<Field[]>(defaultFields);
 
   useEffect(() => {
     fetch("/api/mock").then(async (res) => setLists(await res.json()));
   }, []);
 
-  const handleCountChange = (e: ChangeEvent<HTMLInputElement>) => {
-    let numericValue = e.target.value.replace(/[^0-9]/g, "");
+  const handleChange = useCallback(
+    (name: string, value: string, index: number, path: number[]) => {
+      const newFields = cloneDeep(fields);
+      let currentField = newFields;
 
-    if (numericValue) {
-      let num = parseInt(numericValue, 10);
-      if (num < 1) {
-        numericValue = "1";
-      } else if (num > 1000) {
-        numericValue = "1000";
+      path.forEach((p) => (currentField = currentField[p].children!));
+      const updatedField = Object.assign({}, currentField[index], { [name]: value });
+
+      if (
+        (name === "value" && currentField[index].value === "object" && value !== "object") ||
+        (name === "value" && currentField[index].value === "arrayObject" && value !== "arrayObject")
+      ) {
+        updatedField.children = [];
       }
-    }
 
-    setCount(numericValue);
-  };
+      currentField[index] = updatedField;
+      setFields(newFields);
+    },
+    [fields, setFields],
+  );
 
-  const handleChange = (name: string, value: string, index: number, path: number[]) => {
-    const newFields = [...fields];
-    let currentField = newFields;
+  const handleArrayValueChange = useCallback(
+    (index: number, path: number[], value: string) => {
+      const newFields = cloneDeep(fields);
+      let currentField = newFields;
 
-    path.forEach((p) => (currentField = currentField[p].children!));
-    const updatedField = { ...currentField[index], [name]: value };
-    if (name === "value" && currentField[index].value === "object" && value !== "object") {
-      updatedField.children = [];
-    }
+      path.forEach((p) => (currentField = currentField[p].children!));
+      currentField[index] = { ...currentField[index], data: value };
+      setFields(newFields);
+    },
+    [fields, setFields],
+  );
 
-    currentField[index] = updatedField;
-    setFields(newFields);
-  };
+  const handleFieldCountChange = useCallback(
+    (index: number, path: number[], value: string) => {
+      const newFields = cloneDeep(fields);
+      let currentField = newFields;
 
-  const addField = (path: number[]): void => {
-    const newFields = [...fields];
-    let currentField = newFields;
+      path.forEach((p) => (currentField = currentField[p].children!));
+      currentField[index] = { ...currentField[index], count: handleInputTextNumber(value) };
+      setFields(newFields);
+    },
+    [fields, setFields],
+  );
 
-    path.forEach((p) => (currentField = currentField[p].children!));
-    currentField.push({ key: "", value: "", children: [] });
-    setFields(newFields);
-  };
+  const addField = useCallback(
+    (path: number[]) => {
+      const newFields = cloneDeep(fields);
+      let currentField = newFields;
 
-  const addNestedField = (index: number, path: number[]): void => {
-    const newFields = [...fields];
-    let currentField = newFields;
+      path.forEach((p) => (currentField = currentField[p].children!));
+      currentField.push({ key: "", value: "", children: [] });
+      setFields(newFields);
+    },
+    [fields, setFields],
+  );
 
-    path.forEach((p) => (currentField = currentField[p].children!));
-    currentField[index].children!.push({ key: "", value: "", children: [] });
-    setFields(newFields);
-  };
+  const addNestedField = useCallback(
+    (index: number, path: number[]) => {
+      const newFields = cloneDeep(fields);
+      let currentField = newFields;
 
-  const removeField = (index: number, path: number[]): void => {
-    const newFields = [...fields];
-    let currentField = newFields;
+      path.forEach((p) => (currentField = currentField[p].children!));
+      currentField[index].children!.push({ key: "", value: "", children: [] });
+      setFields(newFields);
+    },
+    [fields, setFields],
+  );
 
-    path.forEach((p) => (currentField = currentField[p].children!));
-    currentField.splice(index, 1);
-    setFields(newFields);
-  };
+  const removeField = useCallback(
+    (index: number, path: number[]): void => {
+      const newFields = cloneDeep(fields);
+      let currentField = newFields;
+
+      path.forEach((p) => (currentField = currentField[p].children!));
+      currentField.splice(index, 1);
+      setFields(newFields);
+    },
+    [fields, setFields],
+  );
 
   const handleJSONSubmit = async () => {
-    const buildJSON = (fields: Field[]): Record<string, any> => {
-      const result: Record<string, any> = {};
-
-      fields.forEach((field) => {
-        if (field.children && field.children.length > 0) {
-          result[field.key] = buildJSON(field.children!);
-        } else {
-          result[field.key] = field.value;
-        }
-      });
-
-      return result;
-    };
-
     const response = await fetch("/api/mock", {
       method: "POST",
-      body: JSON.stringify({ count: parseInt(count), data: buildJSON(fields) }),
+      body: JSON.stringify({
+        data: buildJSON(fields),
+        count: count ? parseInt(count) : 1,
+      }),
     });
 
     setResult(await response.json());
-  };
-
-  const handleReset = () => {
-    setResult(null);
-    setFields([{ key: "", value: "", children: [] }]);
-    toast.success("Fields has been reset!");
   };
 
   const renderFields = (fields: Field[], path: number[] = []) => {
@@ -124,6 +134,27 @@ export const DynamicFields = () => {
             handleChange={handleChange}
             lists={lists}
           />
+          {field.value === "array" ? (
+            <SelectMethod
+              name="data"
+              value={field.data || ""}
+              index={index}
+              path={path}
+              handleArrayValueChange={handleArrayValueChange}
+              lists={lists.filter((list) => list.category !== "")}
+            />
+          ) : null}
+          {field.value === "arrayObject" || field.value === "array" ? (
+            <Input
+              type="text"
+              placeholder="1-1000"
+              value={field.count || ""}
+              className="w-20"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              onChange={(e) => handleFieldCountChange(index, path, e.target.value)}
+            />
+          ) : null}
           <div>
             <Button
               onClick={() => removeField(index, path)}
@@ -136,7 +167,7 @@ export const DynamicFields = () => {
           </div>
         </div>
         {field.children?.length ? renderFields(field.children, [...path, index]) : null}
-        {field.value === "object" ? (
+        {field.value === "object" || field.value === "arrayObject" ? (
           <div style={{ marginLeft: 20 }}>
             <Button onClick={() => addNestedField(index, path)} size="icon">
               <PlusCircle size={20} />
@@ -149,34 +180,31 @@ export const DynamicFields = () => {
 
   return (
     <>
+      <div className="flex items-center gap-3 pb-2">
+        <h1 className="font-black">POST</h1>
+        <div className="h-5 w-[1px] bg-border" />
+        <h1 className="line-clamp-1 text-sm">{getBaseURL()}/api/mock</h1>
+      </div>
       <div className="flex flex-col gap-2">{renderFields(fields)}</div>
       <div className="flex items-center justify-between py-2">
         <Button onClick={() => addField([])} size="icon">
           <PlusCircle size={20} />
         </Button>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2">
-            <h1>Count:</h1>
-            <Input
-              type="text"
-              placeholder="1-1000"
-              value={count}
-              className="w-20"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              onChange={handleCountChange}
-            />
-          </div>
+          <Input
+            type="text"
+            placeholder="Count: 1-1000"
+            value={count ?? ""}
+            inputMode="numeric"
+            className="w-20"
+            pattern="[0-9]*"
+            onChange={(e) => setCount(handleInputTextNumber(e.target.value))}
+          />
+          <ViewCode fields={fields} count={count} />
+          <Button onClick={handleJSONSubmit} disabled={!fields.length}>
+            Try it!
+          </Button>
         </div>
-      </div>
-      <div className="flex items-center justify-center gap-5 pb-5">
-        <Button onClick={handleJSONSubmit} disabled={!fields.length || !count.length}>
-          Try it!
-        </Button>
-        <Button onClick={handleReset} variant="destructive">
-          <RotateCcw size={20} className="mr-2" />
-          Reset
-        </Button>
       </div>
       {result ? <Code code={JSON.stringify(result, null, 2)} language="json" /> : null}
     </>

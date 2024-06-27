@@ -8,7 +8,7 @@ const fontSans = Font({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: "Faux API",
-  description: "Generate realistic fake data for your API testing and development needs.",
+  description: "Generate realistic mock data for your API testing and development needs.",
 };
 
 export default function RootLayout({

@@ -4,13 +4,15 @@ import { Prism } from "react-syntax-highlighter";
 import { oneDark as theme } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import { Button } from "../ui/button";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 type CodeProps = {
   code: string;
   language?: string;
+  isDialog?: boolean;
 };
 
-export const Code = ({ code, language = "typescript" }: CodeProps) => {
+export const Code = ({ code, language = "typescript", isDialog = false }: CodeProps) => {
   const handleJSONCopy = () => {
     navigator.clipboard
       .writeText(code)
@@ -19,8 +21,8 @@ export const Code = ({ code, language = "typescript" }: CodeProps) => {
   };
 
   return (
-    <div>
-      <div className="rounded-t-[10px] border-b bg-[#282c34] text-end border-muted-foreground">
+    <div className={cn(isDialog ? "max-h-96 overflow-y-scroll rounded-[10px]" : "")}>
+      <div className="rounded-t-[10px] border-b border-muted-foreground bg-[#282c34] text-end">
         <Button
           size="sm"
           className="bg-transparent text-xs text-muted-foreground hover:bg-transparent hover:text-background"

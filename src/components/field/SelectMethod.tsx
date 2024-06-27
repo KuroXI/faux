@@ -12,22 +12,35 @@ import {
   CommandSeparator,
 } from "../ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { cn } from "@/lib/utils";
+import { cn, parseMethodValue } from "@/lib/utils";
 
 type SelectMethodProps = {
   name: string;
   value: string;
   index: number;
   path: number[];
-  handleChange: (name: string, value: string, index: number, path: number[]) => void;
+  handleChange?: (name: string, value: string, index: number, path: number[]) => void;
+  handleArrayValueChange?: (index: number, path: number[], value: string) => void;
   lists: Method[];
 };
 
-export const SelectMethod = ({ name, value, index, path, handleChange, lists }: SelectMethodProps) => {
+export const SelectMethod = ({
+  name,
+  value,
+  index,
+  path,
+  handleChange,
+  handleArrayValueChange,
+  lists,
+}: SelectMethodProps) => {
   const [open, setOpen] = useState(false);
 
   const handleSelect = (value: string) => {
-    handleChange(name, value, index, path);
+    if (handleArrayValueChange) {
+      handleArrayValueChange(index, path, value);
+    } else if (handleChange) {
+      handleChange(name, value, index, path);
+    }
     setOpen(false);
   };
 
@@ -50,7 +63,7 @@ export const SelectMethod = ({ name, value, index, path, handleChange, lists }: 
                   {list.methods.map((method) => (
                     <CommandItem
                       key={`${list.category}.${method}`}
-                      value={method === "object" ? "object" : `${list.category}.${method}`}
+                      value={parseMethodValue(list.category, method)}
                       onSelect={handleSelect}
                     >
                       <Check className={cn("mr-2 h-4 w-4", value === method ? "opacity-100" : "opacity-0")} />
