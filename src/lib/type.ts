@@ -1,6 +1,8 @@
 export interface Field {
   key: string;
   value: string;
+  data?: string;
+  count?: string;
   children?: Field[];
 }
 

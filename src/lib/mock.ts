@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker";
-import { deprecatedMethods, filteredCategory } from "./constant";
+import { deprecatedMethods, filteredCategory, specialDataType } from "./constant";
 
 interface FakerCategory {
   [method: string]: () => any;
@@ -10,7 +10,7 @@ interface Faker {
 }
 
 export const getFakerMethods = () => {
-  const result: { [category: string]: string[] } = { "": ["object"] };
+  const result: { [category: string]: string[] } = { "": specialDataType };
 
   Object.keys(faker)
     .filter((category) => !filteredCategory.includes(category))
@@ -31,12 +31,12 @@ export const getFakerMethods = () => {
   return Object.keys(result)
     .map((v) => ({
       category: v,
-      methods: result[v],
+      methods: result[v].sort((a, b) => (a > b ? 1 : -1)),
     }))
     .sort((a, b) => (a.category > b.category ? 1 : -1));
 };
 
-export const generateMockData = (key: string): any => {
+export const generateMockData = (key: string) => {
   if (deprecatedMethods.includes(key)) return `${key} is a deprecated method`;
 
   const [category, method] = key.split(".");
@@ -59,7 +59,17 @@ export const transformObject = (object: any, count: number = 1): any => {
       if (typeof value === "string" && value.includes(".")) {
         result[key] = generateMockData(value);
       } else if (typeof value === "object" && value !== null) {
-        result[key] = transform(value);
+        if ("total" in value && "data" in value && typeof value.data === "object") {
+          result[key] = faker.helpers.multiple(() => transform(value.data), {
+            count: value.total as number,
+          });
+        } else if ("total" in value && "data" in value && typeof value.data === "string") {
+          result[key] = faker.helpers.multiple(() => generateMockData(value.data as string), {
+            count: value.total as number,
+          });
+        } else {
+          result[key] = transform(value);
+        }
       } else {
         result[key] = value;
       }
