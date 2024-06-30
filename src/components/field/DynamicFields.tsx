@@ -1,26 +1,25 @@
 "use client";
 
-import { defaultFields } from "@/lib/constant";
-import { Field, Method } from "@/lib/type";
+import { getFakerMethods } from "@/lib/mock";
+import { Field } from "@/lib/type";
 import { buildJSON, getBaseURL, handleInputTextNumber } from "@/lib/utils";
 import { cloneDeep } from "lodash";
-import { Eye, PlusCircle, Trash2 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { PlusCircle, Trash2 } from "lucide-react";
+import { useCallback, useState } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Code } from "./Code";
 import { SelectMethod } from "./SelectMethod";
 import { ViewCode } from "./ViewCode";
+import { Template } from "./Template";
+import { task } from "@/template/task";
 
 export const DynamicFields = () => {
-  const [result, setResult] = useState(null);
-  const [lists, setLists] = useState<Method[]>([]);
-  const [count, setCount] = useState<string | null>(null);
-  const [fields, setFields] = useState<Field[]>(defaultFields);
+  const lists = getFakerMethods();
 
-  useEffect(() => {
-    fetch("/api/mock").then(async (res) => setLists(await res.json()));
-  }, []);
+  const [result, setResult] = useState(null);
+  const [count, setCount] = useState<string | null>(null);
+  const [fields, setFields] = useState<Field[]>(task.fields);
 
   const handleChange = useCallback(
     (name: string, value: string, index: number, path: number[]) => {
@@ -73,7 +72,7 @@ export const DynamicFields = () => {
       let currentField = newFields;
 
       path.forEach((p) => (currentField = currentField[p].children!));
-      currentField.push({ key: "", value: "", children: [] });
+      currentField.push({ key: "", value: "" });
       setFields(newFields);
     },
     [fields, setFields],
@@ -85,7 +84,7 @@ export const DynamicFields = () => {
       let currentField = newFields;
 
       path.forEach((p) => (currentField = currentField[p].children!));
-      currentField[index].children!.push({ key: "", value: "", children: [] });
+      currentField[index].children!.push({ key: "", value: "" });
       setFields(newFields);
     },
     [fields, setFields],
@@ -180,10 +179,13 @@ export const DynamicFields = () => {
 
   return (
     <>
-      <div className="flex items-center gap-3 pb-2">
-        <h1 className="font-black">POST</h1>
-        <div className="h-5 w-[1px] bg-border" />
-        <h1 className="line-clamp-1 text-sm">{getBaseURL()}/api/mock</h1>
+      <div className="flex items-center justify-between pb-2">
+        <div className="flex items-center gap-3">
+          <h1 className="font-black">POST</h1>
+          <div className="h-5 w-[1px] bg-border" />
+          <h1 className="line-clamp-1 text-sm">{getBaseURL()}/api/mock</h1>
+        </div>
+        <Template setFields={setFields} />
       </div>
       <div className="flex flex-col gap-2">{renderFields(fields)}</div>
       <div className="flex items-center justify-between py-2">

@@ -7,7 +7,7 @@ Generate realistic mock data for your API testing and development needs.
 - [x] Dynamic fields to simulate JSON
 - [x] Dynamic fields with nested objects
 - [x] Support array object using [multiple](https://fakerjs.dev/api/helpers.html#multiple)
-- [ ] Demonstration Template
+- [x] Demonstration Template
 
 ## Usage
 

@@ -1,17 +1,5 @@
 import { getBaseURL } from "./utils";
 
-export const defaultFields = [
-  { key: "uuid", value: "string.uuid", children: [] },
-  {
-    key: "information",
-    value: "object",
-    children: [
-      { key: "firstName", value: "person.firstName" },
-      { key: "lastName", value: "person.lastName" },
-    ],
-  },
-];
-
 export const viewCode = (json: any, count: string | null) => `const response = await fetch("${getBaseURL()}/api/mock", {
   method: "POST",
   body: JSON.stringify({
