@@ -10,3 +10,8 @@ export interface Method {
   category: string;
   methods: string[];
 }
+
+export interface Template {
+  name: string;
+  fields: Field[];
+}

@@ -1,6 +1,6 @@
 import { viewCode } from "@/lib/constant";
 import { Field } from "@/lib/type";
-import { buildJSON, getBaseURL } from "@/lib/utils";
+import { buildJSON } from "@/lib/utils";
 import { Eye } from "lucide-react";
 import { Button } from "../ui/button";
 import {
@@ -27,7 +27,7 @@ export const ViewCode = ({ fields, count }: ViewCodeProps) => {
           <Eye size={20} />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-screen-lg">
+      <DialogContent className="max-w-screen-md">
         <DialogHeader>
           <DialogTitle>Code Snippet</DialogTitle>
           <DialogDescription>

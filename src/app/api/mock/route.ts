@@ -1,4 +1,4 @@
-import { getFakerMethods, transformObject } from "@/lib/mock";
+import { transformObject } from "@/lib/mock";
 import { NextResponse } from "next/server";
 
 type BodyJSON = {
@@ -14,8 +14,4 @@ export async function POST(request: Request) {
   }
 
   return new Response(JSON.stringify(transformObject(data, count)));
-}
-
-export async function GET() {
-  return new Response(JSON.stringify(getFakerMethods()));
 }
