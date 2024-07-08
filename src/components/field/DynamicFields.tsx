@@ -39,7 +39,7 @@ export const DynamicFields = () => {
       currentField[index] = updatedField;
       setFields(newFields);
     },
-    [fields, setFields],
+    [fields],
   );
 
   const handleArrayValueChange = useCallback(
@@ -51,7 +51,7 @@ export const DynamicFields = () => {
       currentField[index] = { ...currentField[index], data: value };
       setFields(newFields);
     },
-    [fields, setFields],
+    [fields],
   );
 
   const handleFieldCountChange = useCallback(
@@ -63,7 +63,7 @@ export const DynamicFields = () => {
       currentField[index] = { ...currentField[index], count: handleInputTextNumber(value) };
       setFields(newFields);
     },
-    [fields, setFields],
+    [fields],
   );
 
   const addField = useCallback(
@@ -75,7 +75,7 @@ export const DynamicFields = () => {
       currentField.push({ key: "", value: "" });
       setFields(newFields);
     },
-    [fields, setFields],
+    [fields],
   );
 
   const addNestedField = useCallback(
@@ -84,10 +84,15 @@ export const DynamicFields = () => {
       let currentField = newFields;
 
       path.forEach((p) => (currentField = currentField[p].children!));
-      currentField[index].children!.push({ key: "", value: "" });
+
+      if (!currentField[index].children) {
+        currentField[index].children = [];
+      };
+
+      currentField[index].children.push({ key: "", value: "" });
       setFields(newFields);
     },
-    [fields, setFields],
+    [fields],
   );
 
   const removeField = useCallback(
@@ -99,7 +104,7 @@ export const DynamicFields = () => {
       currentField.splice(index, 1);
       setFields(newFields);
     },
-    [fields, setFields],
+    [fields],
   );
 
   const handleJSONSubmit = async () => {
